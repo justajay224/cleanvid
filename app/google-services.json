@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1065717700771",
+    "project_id": "masaka22224",
+    "storage_bucket": "masaka22224.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1065717700771:android:5c07e911cb9b27e4dcc716",
+        "android_client_info": {
+          "package_name": "com.wannabe.cleanvid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCpjbJuRVpfBtAIon0YCypzAVd85mcRDA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
