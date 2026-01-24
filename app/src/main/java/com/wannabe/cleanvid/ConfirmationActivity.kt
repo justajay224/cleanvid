@@ -26,9 +26,6 @@ class ConfirmationActivity : AppCompatActivity() {
             intent.getParcelableArrayListExtra("SPAM_COMMENTS")
         } ?: arrayListOf()
 
-        // ===============================================
-        //           PENAMBAHAN KODE DI SINI
-        // ===============================================
         val titleTextView: TextView = findViewById(R.id.titleTextView)
         val spamCount = comments.size
         titleTextView.text = "$spamCount Komentar Spam Ditemukan"

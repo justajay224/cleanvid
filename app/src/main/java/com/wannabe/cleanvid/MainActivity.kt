@@ -11,12 +11,15 @@ import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.WindowCompat
-import androidx.navigation.NavController
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
+//import androidx.navigation.NavController
+//import androidx.navigation.fragment.NavHostFragment
+//import androidx.navigation.ui.setupWithNavController
+//import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-
+import android.content.pm.PackageManager
+import android.util.Base64
+import android.util.Log
+import java.security.MessageDigest
 
 class MainActivity : AppCompatActivity() {
 
@@ -48,11 +51,11 @@ class MainActivity : AppCompatActivity() {
         overlayNoConnection = findViewById(R.id.overlayNoConnection)
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-        val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        val navController: NavController = navHostFragment.navController
-        navView.setupWithNavController(navController)
+//        val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
+//        val navHostFragment = supportFragmentManager
+//            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+//        val navController: NavController = navHostFragment.navController
+//        navView.setupWithNavController(navController)
     }
 
     override fun onResume() {
@@ -76,7 +79,6 @@ class MainActivity : AppCompatActivity() {
                 capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
     }
 
-    // Fungsi ini sekarang mengontrol overlay
     private fun showNetworkStatus(isConnected: Boolean) {
         overlayNoConnection.visibility = if (isConnected) View.GONE else View.VISIBLE
     }

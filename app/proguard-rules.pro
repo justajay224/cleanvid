@@ -40,3 +40,20 @@
 # Aturan tambahan untuk menghindari warning saat build
 -dontwarn com.google.api.client.googleapis.googleapi.**
 -dontwarn com.google.api.client.util.GenericData
+
+# Melindungi kelas-kelas inti Google API Client
+-keep class com.google.api.client.** { *; }
+-dontwarn com.google.api.client.**
+
+# Melindungi kelas-kelas spesifik Google API Services (termasuk exception)
+-keep class com.google.api.services.** { *; }
+-dontwarn com.google.api.services.**
+
+# Melindungi kelas spesifik GoogleJsonResponseException (untuk keamanan ganda)
+-keep class com.google.api.client.googleapis.json.GoogleJsonResponseException { *; }
+
+# Mengabaikan warning tentang class Java Naming yang hilang (tidak ada di Android)
+-dontwarn javax.naming.**
+
+# Mengabaikan warning tentang class Java GSS yang hilang (tidak ada di Android)
+-dontwarn org.ietf.jgss.**

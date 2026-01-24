@@ -6,40 +6,78 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+<!--    <androidx.fragment.app.FragmentContainerView-->
+<!--        android:id="@+id/nav_host_fragment"-->
+<!--        android:name="androidx.navigation.fragment.NavHostFragment"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="0dp"-->
+<!--        app:defaultNavHost="true"-->
+<!--        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:navGraph="@navigation/nav_graph" />-->
+
+<!--    <View-->
+<!--        android:id="@+id/divider"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="1dp"-->
+<!--        android:background="@color/brand_red"-->
+<!--        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent" />-->
+
+<!--    <com.google.android.material.bottomnavigation.BottomNavigationView-->
+<!--        android:id="@+id/bottom_navigation"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:itemIconTint="@color/brand_red"-->
+<!--        app:itemTextColor="@android:color/white"-->
+<!--        app:itemIconSize="30dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:menu="@menu/bottom_nav_menu" />-->
+
+
+<!--    <FrameLayout-->
+<!--        android:id="@+id/overlayNoConnection"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:background="#B3000000"-->
+<!--        android:clickable="true"-->
+<!--        android:focusable="true"-->
+<!--        android:visibility="gone"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        tools:visibility="visible">-->
+
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:drawablePadding="16dp"-->
+<!--            android:gravity="center"-->
+<!--            android:text="Memeriksa koneksi internet..."-->
+<!--            android:textColor="@android:color/white"-->
+<!--            android:textSize="18sp"-->
+<!--            app:drawableTopCompat="@android:drawable/stat_sys_warning" />-->
+
+<!--    </FrameLayout>-->
+
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment"
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:defaultNavHost="true"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:navGraph="@navigation/nav_graph" />
-
-    <View
-        android:id="@+id/divider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="@color/brand_red"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:itemIconTint="@color/brand_red"
-        app:itemTextColor="@android:color/white"
-        app:itemIconSize="30dp"
+        app:navGraph="@navigation/nav_graph"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
-
-
+        app:layout_constraintTop_toTopOf="parent" />
     <FrameLayout
         android:id="@+id/overlayNoConnection"
         android:layout_width="0dp"

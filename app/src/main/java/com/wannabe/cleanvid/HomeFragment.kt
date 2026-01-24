@@ -172,36 +172,77 @@ class HomeFragment : Fragment() {
     private suspend fun findSpamCommentsInVideo(youtube: YouTube, videoId: String): List<SpamComment> {
         val foundSpam = mutableListOf<SpamComment>()
         try {
-            // Panggilan API #1: Published
+            // =================================================================
+            // 1. PERIKSA KOMENTAR PUBLIK (PUBLISHED)
+            // =================================================================
             val publishedThreads = youtube.commentThreads().list(listOf("snippet"))
-                .setVideoId(videoId).setTextFormat("plainText").execute()
-            for (commentThread in publishedThreads.items) {
-                val comment = commentThread.snippet.topLevelComment
-                val commentText = comment.snippet.textDisplay
-                if (SpamDetector.isSpam(commentText)) {
-                    foundSpam.add(SpamComment(id = comment.id, text = commentText, authorChannelId = comment.snippet.authorChannelId.value))
+                .setVideoId(videoId)
+                .setTextFormat("plainText")
+                .execute()
+
+            if (publishedThreads.items != null) {
+                for (commentThread in publishedThreads.items) {
+                    val comment = commentThread.snippet.topLevelComment
+                    val commentText = comment.snippet.textDisplay
+                    // Ambil Username (Default "Tanpa Nama" jika null)
+                    val username = comment.snippet.authorDisplayName ?: "Tanpa Nama"
+
+                    // Cek Spam menggunakan Teks DAN Username
+                    if (SpamDetector.isSpam(commentText, username)) {
+                        // Masukkan ke daftar spam dengan format gabungan
+                        foundSpam.add(
+                            SpamComment(
+                                id = comment.id,
+                                // GABUNGKAN USERNAME KE SINI AGAR TAMPIL DI LAYAR
+                                text = "👤 $username:\n$commentText",
+                                authorChannelId = comment.snippet.authorChannelId.value
+                            )
+                        )
+                    }
                 }
             }
 
-            // Panggilan API #2: Held for review
+            // =================================================================
+            // 2. PERIKSA KOMENTAR DITAHAN (HELD FOR REVIEW)
+            // =================================================================
             val heldThreads = youtube.commentThreads().list(listOf("snippet"))
-                .setVideoId(videoId).setModerationStatus("heldForReview").setTextFormat("plainText").execute()
-            for (commentThread in heldThreads.items) {
-                val comment = commentThread.snippet.topLevelComment
-                val commentText = comment.snippet.textDisplay
-                if (SpamDetector.isSpam(commentText)) {
-                    foundSpam.add(SpamComment(id = comment.id, text = commentText, authorChannelId = comment.snippet.authorChannelId.value))
+                .setVideoId(videoId)
+                .setModerationStatus("heldForReview")
+                .setTextFormat("plainText")
+                .execute()
+
+            if (heldThreads.items != null) {
+                for (commentThread in heldThreads.items) {
+                    val comment = commentThread.snippet.topLevelComment
+                    val commentText = comment.snippet.textDisplay
+                    val username = comment.snippet.authorDisplayName ?: "Tanpa Nama"
+
+                    if (SpamDetector.isSpam(commentText, username)) {
+                        foundSpam.add(
+                            SpamComment(
+                                id = comment.id,
+                                // GABUNGKAN USERNAME KE SINI JUGA
+                                text = "👤 $username:\n$commentText",
+                                authorChannelId = comment.snippet.authorChannelId.value
+                            )
+                        )
+                    }
                 }
             }
+
         } catch (e: GoogleJsonResponseException) {
+            // Penanganan khusus jika komentar dinonaktifkan
             val isCommentsDisabled = e.details?.errors?.any { it.reason == "commentsDisabled" } == true
             if (e.statusCode == 403 && isCommentsDisabled) {
                 withContext(Dispatchers.Main) {
-                    notificationTextView.text = "Proses dibatalkan: Ada komentar video yang dinonaktifkan."
+                    notificationTextView.text = "Proses dibatalkan: Komentar untuk video ini dinonaktifkan."
                 }
             } else {
+                // Jika error lain, lempar agar ditangani fungsi pemanggil
                 throw e
             }
+        } catch (e: Exception) {
+            throw e
         }
         return foundSpam
     }

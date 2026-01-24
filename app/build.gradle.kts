@@ -1,9 +1,17 @@
+import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("kotlin-parcelize")
     alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.google.firebase.crashlytics)
+    id("androidx.navigation.safeargs.kotlin")
+}
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
 }
 
 android {
@@ -14,10 +22,16 @@ android {
         applicationId = "com.wannabe.cleanvid"
         minSdk = 24
         targetSdk = 36
-        versionCode = 18
-        versionName = "1.0.17"
+        versionCode = 24
+        versionName = "1.0.23"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        val apiKey = localProperties.getProperty("YOUTUBE_API_KEY") ?: ""
+        buildConfigField("String", "YOUTUBE_API_KEY", "\"$apiKey\"")
+    }
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
     }
 
     buildTypes {
