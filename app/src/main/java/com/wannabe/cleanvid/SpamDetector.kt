@@ -4,69 +4,147 @@ import java.text.Normalizer
 
 object SpamDetector {
 
-    private val spamKeywords = setOf(
-        "slot", "gacor", "maxwin", "rtp", "pragmatic", "wd", "jp",
-        "lapakwd", "jepe", "garudahoki", "hoki", "jepi", "pulauwin",
-        "hariantoto", "pulau777", "kyt4d", "kytad", "pulauttt",
-        "togel", "toto", "bonus", "deposit", "withdraw"
+    private val highRiskKeywords = setOf(
+        "mona4d", "garudahoki", "maxwin", "lapakwd", "pulauwin", "banteng hoki", "spinharta", "sasafun", "ri188", "st789", "sloidr", "BBCA4D", "istanatempur",
+        "e88vip", "okgame", "remi101n", "h5hiwin", "badak178", "dewi11", "hoki88", "slotbola", "rajaspin", "inibet", "tkp303", "berkah99", "nasagaming",
+        "hariantoto", "pulau777", "kyt4d", "kytad", "pulauttt", "slotgacor", "toto", "kemang88", "garudahok", "himalaya4d", "himalayaad", "wg4d", "junior88",
+    )
+
+    // 2. TINGKATAN KATA KUNCI RISIKO MENENGAH (Bisa jadi bahasa gaul/normal) -> Skor 1.5
+    private val mediumRiskKeywords = setOf(
+        "slot", "gacor", "wd", "jp", "jepe", "jepi","togel", "deposit","hoki", "withdraw"
     )
 
     private const val ABNORMAL_CHAR_THRESHOLD = 5
 
-    // ---------------------------
-    // Normalisasi Super Agresif
-    // ---------------------------
-    private fun normalizeSuperAggressively(text: String): String {
+    private fun applyHomoglyphTrstn(text: String): String {
         var t = text
-            .replace("🅰", "a").replace("🅐", "a").replace("ⓐ", "a")
-            .replace("🅱", "b").replace("🅑", "b").replace("ⓑ", "b")
-            .replace("🅲", "c").replace("🅒", "c").replace("ⓒ", "c")
-            .replace("🅳", "d").replace("🅓", "d").replace("ⓓ", "d")
-            .replace("🅴", "e").replace("🅔", "e").replace("ⓔ", "e")
-            .replace("🅵", "f").replace("🅕", "f").replace("ⓕ", "f")
-            .replace("🅶", "g").replace("🅖", "g").replace("ⓖ", "g")
-            .replace("🅷", "h").replace("🅗", "h").replace("ⓗ", "h")
-            .replace("🅸", "i").replace("🅘", "i").replace("ⓘ", "i")
-            .replace("🅹", "j").replace("🅙", "j").replace("ⓙ", "j")
-            .replace("🅺", "k").replace("🅚", "k").replace("ⓚ", "k")
-            .replace("🅻", "l").replace("🅛", "l").replace("ⓛ", "l")
-            .replace("🅼", "m").replace("🅜", "m").replace("ⓜ", "m")
-            .replace("🅽", "n").replace("🅝", "n").replace("ⓝ", "n")
-            .replace("🅾", "o").replace("🅞", "o").replace("ⓞ", "o")
-            .replace("🅿", "p").replace("🅟", "p").replace("ⓟ", "p")
-            .replace("🆀", "q").replace("🅠", "q").replace("ⓠ", "q")
-            .replace("🆁", "r").replace("🅡", "r").replace("ⓡ", "r")
-            .replace("🆂", "s").replace("🅢", "s").replace("ⓢ", "s")
-            .replace("🆃", "t").replace("🅣", "t").replace("ⓣ", "t")
-            .replace("🆄", "u").replace("🅤", "u").replace("ⓤ", "u")
-            .replace("🆅", "v").replace("🅥", "v").replace("ⓥ", "v")
-            .replace("🆆", "w").replace("🅦", "w").replace("ⓦ", "w")
-            .replace("🆇", "x").replace("🅧", "x").replace("ⓧ", "x")
-            .replace("🆈", "y").replace("🅨", "y").replace("ⓨ", "y")
-            .replace("🆉", "z").replace("🅩", "z").replace("ⓩ", "z")
+        val replacements = mapOf(
+            Regex("[аᴀａαάΑΆ]") to "a",
+            Regex("[ʙｂВвΒβ]") to "b",
+            Regex("[сᴄｃСсϲϹ]") to "c",
+            Regex("[ᴅｄ]") to "d",
+            Regex("[еᴇｅЕеΕέεέ]") to "e",
+            Regex("[ꜰｆ]") to "f",
+            Regex("[ɢｇԌԍ]") to "g",
+            Regex("[нʜｈНнΗήηή]") to "h",
+            Regex("[ɪіıｉІіΙίιί]") to "i",
+            Regex("[ᴊｊЈј]") to "j",
+            Regex("[кᴋｋКкΚκ]") to "k",
+            Regex("[ʟｌ]") to "l",
+            Regex("[мᴍｍМмΜμ]") to "m",
+            Regex("[ɴｎΝν]") to "n",
+            Regex("[оᴏｏОоΟόοό]") to "o",
+            Regex("[рᴘｐРрΡρ]") to "p",
+            Regex("[ǫｑ]") to "q",
+            Regex("[ʀｒ]") to "r",
+            Regex("[ꜱｓЅѕ]") to "s",
+            Regex("[ᴛｔТтΤτ]") to "t",
+            Regex("[ᴜｕ]") to "u",
+            Regex("[ᴠｖѴѵν]") to "v",
+            Regex("[ᴡｗԜԝ]") to "w",
+            Regex("[хｘХхΧχ]") to "x",
+            Regex("[уʏｙУуΥύυύ]") to "y",
+            Regex("[ᴢｚΖζ]") to "z"
+        )
 
-        t = Normalizer.normalize(t, Normalizer.Form.NFKC)
-            .lowercase()
-
-        // simple leetspeak normalization
-        t = t.replace("1", "i")
-            .replace("0", "o")
-            .replace("4", "a")
-            .replace("3", "e")
-            .replace("5", "s")
-            .replace("7", "t")
-            .replace("8", "b")
-            .replace("6", "g")
-            .replace("9", "g")
-
-        // remove all non-letter chars (we keep only a-z)
-        return t.replace(Regex("[^a-z]"), "")
+        for ((regex, replacement) in replacements) {
+            t = t.replace(regex, replacement)
+        }
+        return t
     }
 
     // ---------------------------
-    // Levenshtein (internal)
+    // Normalisasi Super Agresif
     // ---------------------------
-    // Mengembalikan distance antara dua string
+//    private fun normalizeSuperAggressively(text: String): String {
+//        var t = text
+//            .replace("🅰", "a").replace("🅐", "a").replace("ⓐ", "a")
+//            .replace("🅱", "b").replace("🅑", "b").replace("ⓑ", "b")
+//            .replace("🅲", "c").replace("🅒", "c").replace("ⓒ", "c")
+//            .replace("🅳", "d").replace("🅓", "d").replace("ⓓ", "d")
+//            .replace("🅴", "e").replace("🅔", "e").replace("ⓔ", "e")
+//            .replace("🅵", "f").replace("🅕", "f").replace("ⓕ", "f")
+//            .replace("🅶", "g").replace("🅖", "g").replace("ⓖ", "g")
+//            .replace("🅷", "h").replace("🅗", "h").replace("ⓗ", "h")
+//            .replace("🅸", "i").replace("🅘", "i").replace("ⓘ", "i").replace("ɪ", "i")
+//            .replace("🅹", "j").replace("🅙", "j").replace("ⓙ", "j")
+//            .replace("🅺", "k").replace("🅚", "k").replace("ⓚ", "k")
+//            .replace("🅻", "l").replace("🅛", "l").replace("ⓛ", "l")
+//            .replace("🅼", "m").replace("🅜", "m").replace("ⓜ", "m")
+//            .replace("🅽", "n").replace("🅝", "n").replace("ⓝ", "n")
+//            .replace("🅾", "o").replace("🅞", "o").replace("ⓞ", "o")
+//            .replace("🅿", "p").replace("🅟", "p").replace("ⓟ", "p")
+//            .replace("🆀", "q").replace("🅠", "q").replace("ⓠ", "q")
+//            .replace("🆁", "r").replace("🅡", "r").replace("ⓡ", "r")
+//            .replace("🆂", "s").replace("🅢", "s").replace("ⓢ", "s")
+//            .replace("🆃", "t").replace("🅣", "t").replace("ⓣ", "t")
+//            .replace("🆄", "u").replace("🅤", "u").replace("ⓤ", "u")
+//            .replace("🆅", "v").replace("🅥", "v").replace("ⓥ", "v")
+//            .replace("🆆", "w").replace("🅦", "w").replace("ⓦ", "w")
+//            .replace("🆇", "x").replace("🅧", "x").replace("ⓧ", "x")
+//            .replace("🆈", "y").replace("🅨", "y").replace("ⓨ", "y")
+//            .replace("🆉", "z").replace("🅩", "z").replace("ⓩ", "z")
+//
+//        t = Normalizer.normalize(t, Normalizer.Form.NFKC)
+//            .lowercase()
+//
+//        // simple leetspeak normalization
+//        t = t.replace("1", "i")
+//            .replace("0", "o")
+//            .replace("4", "a")
+//            .replace("3", "e")
+//            .replace("5", "s")
+//            .replace("7", "t")
+//            .replace("8", "b")
+//            .replace("6", "g")
+//            .replace("9", "g")
+//
+//        // remove all non-letter chars (we keep only a-z)
+//        return t.replace(Regex("[^a-z]"), "")
+//    }
+
+    private fun normalizeSuperAggressively(text: String): String {
+        var t = Normalizer.normalize(text, Normalizer.Form.NFKC).lowercase()
+
+        // 1. Terjemahkan huruf palsu (Small Caps / Cyrillic)
+        t = applyHomoglyphTrstn(t)
+
+        // 2. Terjemahkan Bubble Letters (seperti ⓐ atau 🅰)
+        t = t.replace(Regex("[🅐ⓐ🅰]"), "a").replace(Regex("[🅑ⓑ🅱]"), "b").replace(Regex("[🅒ⓒ🅲]"), "c")
+            .replace(Regex("[🅓ⓓ🅳]"), "d").replace(Regex("[🅔ⓔ🅴]"), "e").replace(Regex("[🅕ⓕ🅵]"), "f")
+            .replace(Regex("[🅖ⓖ🅶]"), "g").replace(Regex("[🅗ⓗ🅷]"), "h").replace(Regex("[🅘ⓘ🅸]"), "i")
+            .replace(Regex("[🅙ⓙ🅹]"), "j").replace(Regex("[🅚ⓚ🅺]"), "k").replace(Regex("[🅛ⓛ🅻]"), "l")
+            .replace(Regex("[🅜ⓜ🅼]"), "m").replace(Regex("[🅝ⓝ🅽]"), "n").replace(Regex("[🅞ⓞ🅾]"), "o")
+            .replace(Regex("[🅟ⓟ🅿]"), "p").replace(Regex("[🅠ⓠ🆀]"), "q").replace(Regex("[🅡ⓡ🆁]"), "r")
+            .replace(Regex("[🅢ⓢ🆂]"), "s").replace(Regex("[🅣ⓣ🆃]"), "t").replace(Regex("[🅤ⓤ🆄]"), "u")
+            .replace(Regex("[🅥ⓥ🆅]"), "v").replace(Regex("[🅦ⓦ🆆]"), "w").replace(Regex("[🅧ⓧ🆇]"), "x")
+            .replace(Regex("[🅨ⓨ🆈]"), "y").replace(Regex("[🅩ⓩ🆉]"), "z")
+
+        // 3. Terjemahkan Leetspeak (angka jadi huruf)
+        t = t.replace("1", "i").replace("0", "o").replace("4", "a").replace("3", "e")
+            .replace("5", "s").replace("7", "t").replace("8", "b").replace("6", "g")
+            .replace("9", "g")
+
+        // 4. Terakhir, HAPUS semua yang bukan huruf a-z murni
+        return t.replace(Regex("[^a-z]"), "")
+    }
+
+    // ==========================================
+    // FUNGSI 2: Mempertahankan Spasi
+    // Digunakan KHUSUS untuk Medium-Risk Keywords
+    // ==========================================
+    private fun cleanTextKeepSpaces(text: String): String {
+        // Terapkan leetspeak dasar dan normalisasi font
+        var t = Normalizer.normalize(text, Normalizer.Form.NFKC).lowercase()
+        t = t.replace("1", "i").replace("0", "o").replace("4", "a").replace("3", "e")
+            .replace("5", "s").replace("7", "t").replace("8", "b").replace("6", "g").replace("9", "g")
+
+        // Buang simbol, TAPI pertahankan a-z dan spasi (\\s)
+        return t.replace(Regex("[^a-z\\s]"), "")
+    }
+
+    // Algoritma Levenshtein Distance
     private fun levenshtein(a: String, b: String): Int {
         if (a == b) return 0
         if (a.isEmpty()) return b.length
@@ -80,166 +158,82 @@ object SpamDetector {
             for (j in 1..b.length) {
                 val cost = if (a[i - 1] == b[j - 1]) 0 else 1
                 dp[i][j] = minOf(
-                    dp[i - 1][j] + 1,       // deletion
-                    dp[i][j - 1] + 1,       // insertion
-                    dp[i - 1][j - 1] + cost // substitution
+                    dp[i - 1][j] + 1, //jalur atas
+                    dp[i][j - 1] + 1,  //jalur kiri
+                    dp[i - 1][j - 1] + cost //jalur diagonal
                 )
             }
         }
         return dp[a.length][b.length]
     }
 
-    // ---------------------------
-    // Deteksi kata kunci (fuzzy)
-    // ---------------------------
-    private fun isKeywordSpam(comment: String): Boolean {
-        val normalizedComment = normalizeSuperAggressively(comment)
-        if (normalizedComment.isEmpty()) return false
-
-        for (keyword in spamKeywords) {
-            val nk = normalizeSuperAggressively(keyword)
-            // langsung mengandung
-            if (normalizedComment.contains(nk)) {
-                android.util.Log.d("SpamDetectorKeyword", "Direct keyword match: '$keyword' in '$normalizedComment'")
-                return true
-            }
-            // fuzzy: jika distance kecil terhadap substring manapun ukuran nk
-            // cek setiap substring panjang nk..nk+3 (untuk toleransi)
-            if (nk.length > 3 && nk.length <= normalizedComment.length) {
-                // cek rolling substrings di normalizedComment
-                for (start in 0..(normalizedComment.length - nk.length)) {
-                    val sub = normalizedComment.substring(start, start + nk.length)
-                    val d = levenshtein(sub, nk)
-                    if (d <= 1) {
-                        android.util.Log.d("SpamDetectorKeyword", "Fuzzy keyword match: '$keyword' ~ '$sub' (d=$d)")
-                        return true
-                    }
-                }
-            }
-        }
-        return false
-    }
-
-    // ---------------------------
-    // Pola promosi (regex)
-    // ---------------------------
+    // Regex Pola Promosi Khusus
     private fun containsPromotionPattern(text: String): Boolean {
         val lower = text.lowercase()
         val patterns = listOf(
-            Regex("\\b(daftar|join|main|coba|gasin|langsung|klik|ayo|buruan)\\b.*\\b(slot|gacor|maxwin|jp)\\b"),
-            Regex("\\b\\w{3,}\\d{2,}\\b"), // SGI88, Pulau777
-            Regex("\\bhttps?://\\S+\\b")   // link
+            Regex("\\b(daftar|join|main|coba|gasin|langsung|klik|ayo|buruan)\\b.*\\b(slot|gacor|maxwin|jp|toto)\\b"),
+            Regex("\\bhttps?://\\S+\\b")
         )
         return patterns.any { it.containsMatchIn(lower) }
     }
 
-    // Deteksi teks dengan huruf gaya emoji (🅰🅱🆎🅾 dsb)
-    private fun containsStylizedEmojiLetters(text: String): Boolean {
-        // Rentang karakter untuk blok Unicode "Enclosed Alphanumeric" (huruf dalam kotak)
-        val regex = Regex("[🄰-🆉🅰-🆉ⓐ-ⓩ]+")
-        val matchCount = regex.findAll(text).sumOf { it.value.length }
-        return matchCount >= 3 // minimal 3 karakter "emoji letter"
-    }
-
     private fun containsStylizedUnicodeLetters(text: String): Boolean {
-        // Rentang Unicode untuk karakter Mathematical Bold, Italic, Fraktur, Script, dsb
-        val regex = Regex("[\\uD835\\uDC00-\\uD835\\uDFFF]+")
-        val matchCount = regex.findAll(text).sumOf { it.value.length }
-        return matchCount >= 3 // minimal 3 karakter stylized
+        val regex = Regex("[\\uD835\\uDC00-\\uD835\\uDFFF\\uFF21-\\uFF5A]+")
+        return regex.findAll(text).sumOf { it.value.length } >= 3
     }
 
-    // Deteksi pola mencurigakan seperti KYT4️⃣D, W1N4, atau kombinasi huruf + emoji angka
     private fun containsAlphaNumericEmojiCombo(text: String): Boolean {
-        // Emoji angka/keycap range (\u0030-0039 + \uFE0F + \u20E3)
         val keycapEmoji = Regex("[\\u0030-\\u0039]\\uFE0F?\\u20E3")
-
-        // Pola huruf + angka atau sebaliknya (misalnya KYT4D, W1N, 4DWIN)
-        val mixedAlphaNum = Regex("(?i)[A-Z]+\\d+[A-Z]*|\\d+[A-Z]+[0-9A-Z]*")
-
-        // Deteksi simbol panah, variasi tanda, atau unicode khusus (biasanya digunakan spam)
-        val weirdSymbols = Regex("[→←↔➡️⬅️⬆️⬇️]+")
-
-        val hasMixed = mixedAlphaNum.containsMatchIn(text)
-        val hasKeycapEmoji = keycapEmoji.containsMatchIn(text)
-        val hasWeirdSymbols = weirdSymbols.containsMatchIn(text)
-
-        // Jika ada kombinasi huruf+angka dan ada emoji angka atau simbol mencolok
-        return (hasMixed && (hasKeycapEmoji || hasWeirdSymbols)) || hasKeycapEmoji
-    }
-
-
-
-    // ---------------------------
-    // Suspicious structure: keyword density
-    // ---------------------------
-    private fun hasSuspiciousStructure(comment: String): Boolean {
-        val words = comment.lowercase().split("\\s+".toRegex()).filter { it.isNotBlank() }
-        if (words.isEmpty()) return false
-        val keywordCount = words.count { w -> spamKeywords.any { k -> w.contains(k) } }
-        val ratio = keywordCount.toDouble() / words.size
-        return ratio > 0.10 // >10% kata adalah keyword
+        return keycapEmoji.containsMatchIn(text)
     }
 
     // ---------------------------
-    // Mixed alpha-numeric detection
-    // ---------------------------
-    private fun hasMixedAlphaNumeric(comment: String): Boolean {
-        return comment.split("\\s+".toRegex()).any { token ->
-            token.any(Char::isLetter) && token.any(Char::isDigit)
-        }
-    }
-
-    // ---------------------------
-    // Karakter abnormal (preserve your logic)
-    // ---------------------------
-    private fun containsAbnormalChars(text: String): Boolean {
-        var abnormalCount = 0
-        val abnormalCharsFound = mutableListOf<Char>()
-
-        for (ch in text) {
-            if (ch.isWhitespace()) continue
-            if (ch in 'a'..'z' || ch in 'A'..'Z' || ch in '0'..'9') continue
-            if (ch in ". ,!?'\"@#$%^&*()_+-=[]{};:\\|<>`~/") continue
-
-            val type = Character.getType(ch)
-            val skipTypes: Set<Int> = setOf(
-                Character.SURROGATE.toInt(),
-                Character.FORMAT.toInt(),
-                Character.OTHER_SYMBOL.toInt(),
-                Character.MODIFIER_SYMBOL.toInt(),
-                Character.MATH_SYMBOL.toInt(),
-                Character.CURRENCY_SYMBOL.toInt(),
-                Character.ENCLOSING_MARK.toInt(),
-                Character.NON_SPACING_MARK.toInt(),
-                Character.COMBINING_SPACING_MARK.toInt()
-            )
-
-            if (skipTypes.contains(type)) continue
-
-            abnormalCount++
-            abnormalCharsFound.add(ch)
-        }
-
-        android.util.Log.d(
-            "SpamDetectorDebug",
-            "Text: '$text' -> AbnormalCount=$abnormalCount, Chars=$abnormalCharsFound"
-        )
-
-        return abnormalCount > ABNORMAL_CHAR_THRESHOLD
-    }
-
-    // ---------------------------
-    // Fungsi utama: weighted scoring
+    // FUNGSI UTAMA: PENILAIAN SKOR SPAM
     // ---------------------------
     fun isSpam(comment: String, username: String): Boolean {
         var score = 0.0
 
-        if (isKeywordSpam(comment)) score += 1.5
+        // 1. Teks Hancur Lebur Tanpa Spasi (Pakai fungsi andalan Anda)
+        val textNoSpaces = normalizeSuperAggressively(comment)
+
+        // 2. CEK HIGH RISK (Cek di teks TANPA SPASI)
+        for (keyword in highRiskKeywords) {
+            val nk = normalizeSuperAggressively(keyword)
+
+            // Exact match
+            if (textNoSpaces.contains(nk)) {
+                score += 2.5
+                break
+            }
+
+            // Fuzzy match (Toleransi Typo) -> Hanya untuk kata >= 6 huruf
+            if (nk.length >= 6 && textNoSpaces.length >= nk.length) {
+                for (start in 0..(textNoSpaces.length - nk.length)) {
+                    val sub = textNoSpaces.substring(start, start + nk.length)
+                    if (levenshtein(sub, nk) <= 1) {
+                        score += 2.5
+                        break
+                    }
+                }
+            }
+        }
+
+        if (score >= 2.5) return true // Langsung buang kalau High Risk
+
+        // 3. CEK MEDIUM RISK (Cek di teks DENGAN SPASI)
+        // Mencegah "soto" jadi "toto"
+        val textWithSpaces = cleanTextKeepSpaces(comment)
+        val words = textWithSpaces.split("\\s+".toRegex()).filter { it.isNotBlank() }
+
+        for (word in words) {
+            if (mediumRiskKeywords.contains(word)) {
+                score += 1.5
+                break // Cukup satu kata ditemukan untuk tambah poin 1.5
+            }
+        }
+
+        // 4. CEK POLA LAINNYA
         if (containsPromotionPattern(comment)) score += 1.5
-        if (hasSuspiciousStructure(comment)) score += 0.5
-        if (hasMixedAlphaNumeric(comment)) score += 0.5
-        if (containsAbnormalChars(comment)) score += 0.5
-        if (containsStylizedEmojiLetters(comment)) score += 1.5
         if (containsStylizedUnicodeLetters(comment)) score += 1.5
         if (containsAlphaNumericEmojiCombo(comment)) score += 1.0
 

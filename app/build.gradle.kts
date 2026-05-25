@@ -22,8 +22,8 @@ android {
         applicationId = "com.wannabe.cleanvid"
         minSdk = 24
         targetSdk = 36
-        versionCode = 24
-        versionName = "1.0.23"
+        versionCode = 26
+        versionName = "1.0.25"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val apiKey = localProperties.getProperty("YOUTUBE_API_KEY") ?: ""
@@ -51,8 +51,10 @@ android {
         jvmTarget = "11"
     }
 
-    packagingOptions {
-        resources.excludes.add("/META-INF/DEPENDENCIES")
+    packaging {
+        resources {
+            excludes += "/META-INF/DEPENDENCIES"
+        }
     }
 }
 
